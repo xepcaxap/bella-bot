@@ -66,11 +66,11 @@ async def command_insult(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def command_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "/meta — Актуальная мета\n"
-        "/совет — Игровой совет\n"
-        "/факт — Факт о CoDM\n"
-        "/оскорби — Подколка от Бэллы\n"
-        "/мут — Замутить игрока (админ)\n"
-        "/кик — Кикнуть игрока (админ)\n"
+        "/sovet — Игровой совет\n"
+        "/fact — Факт о CoDM\n"
+        "/insult — Подколка от Бэллы\n"
+        "/mute — Замутить игрока (админ)\n"
+        "/kick — Кикнуть игрока (админ)\n"
         "/help — Все команды"
     )
 
@@ -138,12 +138,12 @@ async def bella_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
 app.add_handler(CommandHandler("meta", command_meta))
-app.add_handler(CommandHandler("совет", command_sovet))
-app.add_handler(CommandHandler("факт", command_fact))
-app.add_handler(CommandHandler("оскорби", command_insult))
+app.add_handler(CommandHandler("sovet", command_sovet))
+app.add_handler(CommandHandler("fact", command_fact))
+app.add_handler(CommandHandler("insult", command_insult))
 app.add_handler(CommandHandler("help", command_help))
-app.add_handler(CommandHandler("мут", mute_user))
-app.add_handler(CommandHandler("кик", kick_user))
+app.add_handler(CommandHandler("mute", mute_user))
+app.add_handler(CommandHandler("kick", kick_user))
 app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_member))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, bella_reply))
 
