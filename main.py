@@ -3,8 +3,10 @@ import os
 import random
 from dotenv import load_dotenv
 from telegram import Update
-from telegram.ext import CommandHandler, MessageHandler, ContextTypes, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 from bella_persona import bella_system_prompt
+from admin_check import admin_only
+from datetime import datetime, timedelta
 
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -67,53 +69,10 @@ async def command_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/совет — Игровой совет\n"
         "/факт — Факт о CoDM\n"
         "/оскорби — Подколка от Бэллы\n"
+        "/мут — Замутить игрока (админ)\n"
+        "/кик — Кикнуть игрока (админ)\n"
         "/help — Все команды"
     )
-
-async def bella_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    chat_id = update.message.chat_id
-    user_input = update.message.text
-
-    update_context(chat_id, "user", user_input)
-    messages = [bella_system_prompt] + get_context(chat_id)
-
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=messages
-        )
-        reply = response['choices'][0]['message']['content']
-        update_context(chat_id, "assistant", reply)
-        await update.message.reply_text(reply)
-    except Exception as e:
-        await update.message.reply_text("Что-то пошло не так, командир... Попробуй позже.")
-        print(e)
-
-async def welcome_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    for member in update.message.new_chat_members:
-        name = member.full_name
-        welcome_messages = [
-            f"Опа, {name} залетел! Надеюсь, ты не бот — у нас конкуренция с настоящими.",
-            f"{name}, добро пожаловать в логово Para Bellum. Надеюсь, ты умеешь стрелять, а не ныть.",
-            f"{name} присоединился к Para Bellum. Осторожно, новичок в чате. Не трогать — пока не проверим на прочность.",
-            f"Ну привет, {name}. В клане Para Bellum шутки кончаются там, где начинается рейтинговая игра."
-        ]
-        await update.message.reply_text(random.choice(welcome_messages))
-
-app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
-
-app.add_handler(CommandHandler("meta", command_meta))
-app.add_handler(CommandHandler("совет", command_sovet))
-app.add_handler(CommandHandler("факт", command_fact))
-app.add_handler(CommandHandler("оскорби", command_insult))
-app.add_handler(CommandHandler("help", command_help))
-app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_member))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, bella_reply))
-
-app.run_polling()
-
-
-from admin_check import admin_only
 
 @admin_only
 async def mute_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -147,5 +106,45 @@ async def kick_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Не получилось кикнуть. Проверь права.")
         print(e)
 
+async def welcome_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    for member in update.message.new_chat_members:
+        name = member.full_name
+        welcome_messages = [
+            f"Опа, {name} залетел! Надеюсь, ты не бот — у нас конкуренция с настоящими.",
+            f"{name}, добро пожаловать в логово Para Bellum. Надеюсь, ты умеешь стрелять, а не ныть.",
+            f"{name} присоединился к Para Bellum. Осторожно, новичок в чате. Не трогать — пока не проверим на прочность.",
+            f"Ну привет, {name}. В клане Para Bellum шутки кончаются там, где начинается рейтинговая игра."
+        ]
+        await update.message.reply_text(random.choice(welcome_messages))
+
+async def bella_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.message.chat_id
+    user_input = update.message.text
+
+    update_context(chat_id, "user", user_input)
+    messages = [bella_system_prompt] + get_context(chat_id)
+
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=messages
+        )
+        reply = response['choices'][0]['message']['content']
+        update_context(chat_id, "assistant", reply)
+        await update.message.reply_text(reply)
+    except Exception as e:
+        await update.message.reply_text("Что-то пошло не так, командир... Попробуй позже.")
+        print(e)
+
+app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
+app.add_handler(CommandHandler("meta", command_meta))
+app.add_handler(CommandHandler("совет", command_sovet))
+app.add_handler(CommandHandler("факт", command_fact))
+app.add_handler(CommandHandler("оскорби", command_insult))
+app.add_handler(CommandHandler("help", command_help))
 app.add_handler(CommandHandler("мут", mute_user))
 app.add_handler(CommandHandler("кик", kick_user))
+app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_member))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, bella_reply))
+
+app.run_polling()
