@@ -4,7 +4,7 @@ import random
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import CommandHandler, MessageHandler, ContextTypes, filters
-    from bella_persona import bella_system_prompt
+from bella_persona import bella_system_prompt
 
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
