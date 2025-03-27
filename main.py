@@ -131,7 +131,7 @@ async def bella_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
     prompt = f"{bella_system_prompt['content']}\n" + "\n".join(
     f"{m['role']}: {m['content']}" for m in get_context(chat_id)
 ) + "\nassistant:"
-
+ 
  try:
     response = requests.post(
         HUGGINGFACE_API_URL,
@@ -147,7 +147,7 @@ async def bella_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
     update_context(chat_id, "assistant", reply)
     await update.message.reply_text(reply)
 
- except Exception as e:
+  except Exception as e:
     await update.message.reply_text("Что-то пошло не так, командир... Попробуй позже.")
     print(e)
 
