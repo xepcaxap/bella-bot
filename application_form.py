@@ -41,9 +41,9 @@ async def handle_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return START
     else:
         result = "∖n".join([f"{i + 1}. {q}Ответ: {a}" for i, (q, a) in enumerate(zip(QUESTIONS, user_answers[chat_id]))])
-        await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=f"Новая заявка:
+        await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=f"Новая заявка:∖n∖n{result}"
+        )
 
-{result}")
         await update.message.reply_text("Спасибо! Твоя анкета отправлена командирам клана.")
         del user_answers[chat_id]
         return ConversationHandler.END
