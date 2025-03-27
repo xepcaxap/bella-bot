@@ -128,7 +128,7 @@ async def bella_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
     messages = [bella_system_prompt] + get_context(chat_id)
 
     
-        prompt = f"{bella_system_prompt['content']}\n" + "\n".join(
+    prompt = f"{bella_system_prompt['content']}\n" + "\n".join(
     f"{m['role']}: {m['content']}" for m in get_context(chat_id)
 ) + "\nassistant:"
 
