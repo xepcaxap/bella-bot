@@ -91,3 +91,10 @@ def index():
 
 if name == '__main__':
     app_flask.run(host='0.0.0.0', port=10000)
+
+def run_telegram():
+    app.run_polling()
+
+if __name__ == '__main__':
+    threading.Thread(target=run_flask).start()
+    run_telegram()
