@@ -1,3 +1,4 @@
+from telegram.ext import CommandHandler
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ConversationHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 from admin_check import admin_only
