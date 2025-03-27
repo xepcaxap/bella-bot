@@ -1,15 +1,10 @@
-from functools import wraps
-from telegram import ChatMember
+from telegram import Update
+from telegram.ext import ContextTypes
 
-def admin_only(func):
-    @wraps(func)
-    async def wrapper(update, context, *args, **kwargs):
-        user_id = update.effective_user.id
-        chat_id = update.effective_chat.id
-        member = await context.bot.get_chat_member(chat_id, user_id)
+ADMIN_CHAT_ID = -4666012091
 
-        if member.status not in [ChatMember.ADMINISTRATOR, ChatMember.OWNER]:
-            await update.message.reply_text("Ты не админ, командир. Без доступа.")
-            return
-        return await func(update, context, *args, **kwargs)
-    return wrapper
+async def admin_only(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message.chat_id != ADMIN_CHAT_ID:
+        await update.message.reply_text("Извините, эта команда только для админов.")
+        return False
+    return True

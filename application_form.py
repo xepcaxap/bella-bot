@@ -1,47 +1,57 @@
-from telegram import Update
-from telegram.ext import ConversationHandler, MessageHandler, CommandHandler, ContextTypes, filters
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ConversationHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
+from admin_check import admin_only
 
 user_answers = {}
 ADMIN_CHAT_ID = -4666012091
-
-START, QUESTION = range(2)
-
-questions = [
-    "1. Как тебя зовут?",
-    "2. Сколько тебе лет?",
-    "3. Во сколько обычно играешь?",
-    "4. Используешь ли ты микрофон? (Да / Нет)"
+QUESTIONS = [
+    "Укажи свой UID.",
+    "Какой у тебя ник в игре?",
+    "Откуда вы о нас узнали?",
+    "Ты готов участвовать в командных играх и турнирах?",
+    "Ты адекватен и не токсичен?",
+    "Есть ли у тебя микрофон? (Да / Нет)"
 ]
 
+START, *STEPS = range(len(QUESTIONS) + 1)
+
 async def start_application(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
-    user_answers[user_id] = []
-
     await update.message.reply_text(
-        "Готов вступить в ряды Para Bellum Rebirth? Это достойный выбор.\n\n"
-        "Прежде чем присоединиться, немного формальностей.\n"
-        "Напиши ответы на вопросы, начиная с первого:"
+        "Готов вступить в ряды Para Bellum Rebirth? Это достойный выбор.
+
+"
+        "Прежде чем присоединиться, немного формальностей.
+"
+        "Напиши ответы на вопросы, начиная с первого:
+
+"
+        f"1. {QUESTIONS[0]}"
     )
-    await update.message.reply_text(questions[0])
-    return QUESTION
+    user_answers[update.message.chat_id] = []
+    return START
 
-async def handle_question(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.message.from_user.id
-    answer = update.message.text
-    user_answers[user_id].append(answer)
+async def handle_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.message.chat_id
+    text = update.message.text
+    step = len(user_answers[chat_id])
+    user_answers[chat_id].append(text)
 
-    if len(user_answers[user_id]) < len(questions):
-        next_question = questions[len(user_answers[user_id])]
-        await update.message.reply_text(next_question)
-        return QUESTION
+    if step + 1 < len(QUESTIONS):
+        await update.message.reply_text(f"{step + 2}. {QUESTIONS[step + 1]}")
+        return START
     else:
-        text = "\n".join(f"{i+1}) {a}" for i, a in enumerate(user_answers[user_id]))
-        await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=f"Новая анкета от @{update.message.from_user.username or 'юзер'}:\n{text}")
-        await update.message.reply_text("Спасибо! Мы рассмотрим твою анкету и свяжемся с тобой.")
+        result = "
+".join([f"{i + 1}. {q}
+Ответ: {a}" for i, (q, a) in enumerate(zip(QUESTIONS, user_answers[chat_id]))])
+        await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=f"Новая заявка:
+
+{result}")
+        await update.message.reply_text("Спасибо! Твоя анкета отправлена командирам клана.")
+        del user_answers[chat_id]
         return ConversationHandler.END
 
 application_handler = ConversationHandler(
     entry_points=[CommandHandler("join", start_application)],
-    states={QUESTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_question)]},
-    fallbacks=[],
+    states={START: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_response)]},
+    fallbacks=[]
 )
