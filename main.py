@@ -1,4 +1,4 @@
-import openai
+import requests
 import os
 import random
 from dotenv import load_dotenv
@@ -7,10 +7,13 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Con
 from bella_persona import bella_system_prompt
 from admin_check import admin_only
 from datetime import datetime, timedelta
+from application_form import application_handler
 
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/tiiuae/falcon-rw-1b"
+HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
+HEADERS = {"Authorization": f"Bearer {HUGGINGFACE_API_KEY}"}
 
 user_contexts = {}
 
@@ -124,17 +127,28 @@ async def bella_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
     update_context(chat_id, "user", user_input)
     messages = [bella_system_prompt] + get_context(chat_id)
 
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=messages
-        )
-        reply = response['choices'][0]['message']['content']
-        update_context(chat_id, "assistant", reply)
-        await update.message.reply_text(reply)
-    except Exception as e:
-        await update.message.reply_text("Что-то пошло не так, командир... Попробуй позже.")
-        print(e)
+    
+        prompt = f"{bella_system_prompt['content']}\n" + "\n".join(
+    f"{m['role']}: {m['content']}" for m in get_context(chat_id)
+) + "\nassistant:"
+
+try:
+    response = requests.post(
+        HUGGINGFACE_API_URL,
+        headers=HEADERS,
+        json={"inputs": prompt, "max_new_tokens": 100}
+    )
+    if response.status_code == 200:
+        generated = response.json()[0]["generated_text"]
+        reply = generated.split("assistant:")[-1].strip()
+    else:
+        reply = "Сервер HuggingFace занят. Попробуй чуть позже."
+
+    update_context(chat_id, "assistant", reply)
+    await update.message.reply_text(reply)
+except Exception as e:
+    await update.message.reply_text("Что-то пошло не так, командир... Попробуй позже.")
+    print(e)
 
 app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
 app.add_handler(CommandHandler("meta", command_meta))
