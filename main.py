@@ -40,7 +40,7 @@ def sovet_text():
     ]
     return random.choice(советы)
 
-def welcome_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def welcome_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE):
     name = update.message.new_chat_members[0].first_name
     welcome_messages = [
         f"Она, {name}, залетела! Надеюсь, ты не бот — у нас конкуренция с настоящими.",
