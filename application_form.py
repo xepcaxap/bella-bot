@@ -40,9 +40,7 @@ async def handle_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"{step + 2}. {QUESTIONS[step + 1]}")
         return START
     else:
-        result = "
-".join([f"{i + 1}. {q}
-Ответ: {a}" for i, (q, a) in enumerate(zip(QUESTIONS, user_answers[chat_id]))])
+        result = "∖n".join([f"{i + 1}. {q}Ответ: {a}" for i, (q, a) in enumerate(zip(QUESTIONS, user_answers[chat_id]))])
         await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=f"Новая заявка:
 
 {result}")
