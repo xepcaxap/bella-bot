@@ -34,6 +34,11 @@ async def start_application(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
     text = update.message.text
+
+    if chat_id not in user_answers:
+        await update.message.reply_text("Сначала напиши /join, чтобы начать анкету.")
+        return
+
     step = len(user_answers[chat_id])
     user_answers[chat_id].append(text)
 
@@ -41,12 +46,10 @@ async def handle_response(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"{step + 2}. {QUESTIONS[step + 1]}")
         return START
     else:
-        result = "∖n".join([f"{i + 1}. {q}Ответ: {a}" for i, (q, a) in enumerate(zip(QUESTIONS, user_answers[chat_id]))])
-        await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=f"Новая заявка:∖n∖n{result}"
-        )
-
+        result = "\n".join([f"{i + 1}. {q}\nОтвет: {a}" for i, (q, a) in enumerate(zip(QUESTIONS, user_answers[chat_id]))])
+        await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=f"Новая заявка:\n\n{result}")
         await update.message.reply_text("Спасибо! Твоя анкета отправлена командирам клана.")
-        del user_answers[chat_id]
+        user_answers[chat_id].clear()
         return ConversationHandler.END
 
 application_handler = ConversationHandler(
