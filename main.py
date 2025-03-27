@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ContextTypes
 from bella_persona import bella_system_prompt
-from application_form import application_handler
+from application_form import start_application, application_handler
 from admin_check import admin_only
 from datetime import datetime, timedelta
 
@@ -51,6 +51,9 @@ async def welcome_new_member(update: Update, context: ContextTypes.DEFAULT_TYPE)
     await update.message.reply_text(random.choice(welcome_messages))
 
 async def bella_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message is None:
+        return
+
     chat_id = update.message.chat_id
     user_input = update.message.text
 
@@ -88,7 +91,8 @@ async def bella_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
 app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
 app.add_handler(CommandHandler("meta", lambda u, c: u.message.reply_text(meta_text())))
 app.add_handler(CommandHandler("sovet", lambda u, c: u.message.reply_text(sovet_text())))
-app.add_handler(CommandHandler("anketa", application_handler))
+app.add_handler(CommandHandler("join", start_application))
+app.add_handler(application_handler)
 app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_member))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, bella_reply))
 app.run_polling()
