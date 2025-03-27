@@ -24,11 +24,11 @@ def start_application(update: Update, context: CallbackContext):
     keyboard = [[InlineKeyboardButton("Заполнить анкету", callback_data="start_form")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text(
-        "🖇Готов вступить в ряды Para Bellum Rebirth? Это достойный выбор.
+        "🖇Готов вступить в ряды Para Bellum Rebirth? Это достойный выбор."
 
-"
-        "🖇Прежде чем присоединиться, немного формальностей.
-"
+
+        "🖇Прежде чем присоединиться, немного формальностей."
+
         "Нажми кнопку ниже, чтобы начать анкету.",
         reply_markup=reply_markup
     )
