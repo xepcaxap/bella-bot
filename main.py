@@ -80,3 +80,14 @@ app.add_handler(application_handler)
 app.add_handler(MessageHandler(filters.StatusUpdate.NEW_CHAT_MEMBERS, welcome_new_member))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, bella_reply))
 app.run_polling()
+
+from flask import Flask
+
+app_flask = Flask(__name__)
+
+@app_flask.route('/')
+def index():
+    return 'Bot is running!'
+
+if name == '__main__':
+    app_flask.run(host='0.0.0.0', port=10000)
