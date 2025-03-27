@@ -17,14 +17,14 @@ START, *STEPS = range(len(QUESTIONS) + 1)
 
 async def start_application(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "Готов вступить в ряды Para Bellum Rebirth? Это достойный выбор.
+        "Готов вступить в ряды Para Bellum Rebirth? Это достойный выбор."
 
-"
-        "Прежде чем присоединиться, немного формальностей.
-"
-        "Напиши ответы на вопросы, начиная с первого:
 
-"
+        "Прежде чем присоединиться, немного формальностей."
+
+        "Напиши ответы на вопросы, начиная с первого:"
+
+
         f"1. {QUESTIONS[0]}"
     )
     user_answers[update.message.chat_id] = []
