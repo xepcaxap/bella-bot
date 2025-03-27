@@ -67,10 +67,10 @@ def cancel(update: Update, context: CallbackContext):
     return ConversationHandler.END
 
 application_handler = ConversationHandler(
-    entry_points=[CommandHandler("вступить", start_application)],
+    entry_points=[CommandHandler("Join", start_application)],
     states={
         START: [CallbackQueryHandler(button_handler, pattern="^start_form$")],
         QUESTION: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_answer)],
     },
-    fallbacks=[CommandHandler("отмена", cancel)],
+    fallbacks=[CommandHandler("cancel", cancel)],
 )
