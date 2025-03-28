@@ -1,55 +1,41 @@
-import openai
 import telebot
-import logging
+import openai
 import os
-import time
+from dotenv import load_dotenv
+
+load_dotenv()
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 openai.api_key = OPENAI_API_KEY
+bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
-log_dir = os.path.join(os.path.dirname(__file__), 'ChatGPT_Logs')
+SYSTEM_PROMPT = "Ты — Белла, вайфу клана Para Bellum Rebirth из Call of Duty Mobile. Общайся саркастично, но дружелюбно. Ты обожаешь винтовку NA-45."
 
-if not os.path.exists(log_dir):
-    os.makedirs(log_dir)
+@bot.message_handler(func=lambda message: message.chat.type in ['group', 'supergroup'])
+def handle_group(message):
+    if message.reply_to_message and message.reply_to_message.from_user.id == bot.get_me().id:
+        respond(message)
 
-logging.basicConfig(filename=os.path.join(log_dir, 'error.log'), level=logging.ERROR,
-                    format='%(levelname)s: %(asctime)s %(message)s', datefmt='%d/%m/%Y %H:%M:%S')
+@bot.message_handler(func=lambda message: message.chat.type == 'private')
+def handle_private(message):
+    respond(message)
 
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    bot.reply_to(message, 'Привет!\nЯ ChatGPT 3.5 Telegram Bot\U0001F916\nЗадай мне любой вопрос и я постараюсь на него ответиь')
-
-def generate_response(prompt):
-        completion = openai.ChatCompletion.create(
+def respond(message):
+    try:
+        response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "user", "content": prompt}
-            ]
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": message.text}
+            ],
+            max_tokens=100
         )
-        return completion.choices[0].message.content
+        reply = response['choices'][0]['message']['content']
+        bot.reply_to(message, reply)
+    except Exception as e:
+        print(f"Ошибка: {e}")
+        bot.reply_to(message, "Что-то пошло не так, командир... Попробуй позже.")
 
-
-@bot.message_handler(commands=['bot'])
-def command_message(message):
-    prompt = message.text
-    response = generate_response(prompt)
-    bot.reply_to(message, text=response)
-
-
-@bot.message_handler(func = lambda _: True)
-def handle_message(message):
-    prompt = message.text
-    response = generate_response(prompt)
-    bot.send_message(chat_id=message.from_user.id, text=response)
-
-
-print('ChatGPT Bot is working')
-
-while True:
-    try:
-        bot.polling()
-    except (telebot.apihelper.ApiException, ConnectionError) as e:
-        logging.error(str(e))
-        time.sleep(5)
-        continue
+bot.polling()
