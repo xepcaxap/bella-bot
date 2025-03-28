@@ -15,6 +15,11 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 openai.api_key = OPENAI_API_KEY
 
+openai.proxy = {
+    "http": "http://user274327:t7qawk@77.83.195.187:9883",
+    "https": "http://user274327:t7qawk@77.83.195.187:9883"
+}
+
 user_contexts = {}
 ADMIN_CHAT_ID = -4666012091
 
@@ -61,7 +66,7 @@ async def bella_reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4o-mini",
+            model="gpt-3.5-turbo",
             messages=messages,
             max_tokens=1000
         )
